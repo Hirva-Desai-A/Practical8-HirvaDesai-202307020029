@@ -1,214 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Commerce API Dashboard</title>
+    <title>GreenMart | Eco-Tech E-Commerce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4F46E5;
-            --bg: #F3F4F6;
-            --card: #FFFFFF;
-            --text: #1F2937;
+            --primary: #059669;
+            --primary-dark: #047857;
+            --accent: #10b981;
+            --bg: #f0fdf4;
+            --card: #ffffff;
+            --text: #064e3b;
+            --error: #ef4444;
+            --console-bg: #064e3b;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
-            color: var(--text);
             margin: 0;
-            padding: 20px;
+            color: var(--text);
+            scroll-behavior: smooth;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            background: white;
+            padding: 15px 8%;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08);
+            position: sticky;
+            top: 0; z-index: 1000;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
+        .logo { font-size: 1.6rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; text-decoration: none; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text); font-weight: 600; font-size: 0.95rem; }
 
-        h1 {
-            text-align: center;
-            color: var(--primary);
+        /* --- NOTIFICATIONS --- */
+        #notification-container { position: fixed; top: 85px; right: 20px; z-index: 9999; }
+        .toast {
+            background: var(--primary); color: white; padding: 15px 25px; border-radius: 10px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1); margin-bottom: 10px; font-weight: 600;
+            animation: slideIn 0.4s ease-out; min-width: 250px;
         }
+        .toast.error { background: var(--error); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        .card {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-        }
+        /* --- HERO --- */
+        .hero { background: linear-gradient(135deg, var(--primary) 0%, #10b981 100%); color: white; padding: 50px 8%; text-align: center; }
+        .hero h1 { font-size: 2.5rem; margin: 0 0 10px 0; }
 
-        .row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+        .container { max-width: 1200px; margin: -40px auto 50px; padding: 0 20px; display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
 
-        .form-group {
-            flex: 1;
-            margin-bottom: 15px;
-        }
+        .section-card { background: var(--card); border-radius: 20px; padding: 30px; box-shadow: 0 15px 35px rgba(5, 150, 105, 0.05); margin-bottom: 30px; }
+        h2 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #ecfdf5; padding-bottom: 10px; margin-bottom: 20px; font-size: 1.3rem; }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            color: #4B5563;
-        }
+        /* --- PRODUCTS --- */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .product-card { border: 1px solid #d1fae5; border-radius: 15px; padding: 15px; text-align: center; transition: 0.3s; }
+        .product-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .p-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+        .p-name { font-weight: 700; margin-bottom: 5px; }
+        .p-price { color: var(--primary); font-weight: 800; margin-bottom: 10px; }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        input[type="file"],
-        input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #D1D5DB;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background-color: #4338CA;
-        }
-
-        button.secondary {
-            background-color: #10B981;
-            margin-top: 10px;
-        }
-
-        button.secondary:hover {
-            background-color: #059669;
-        }
-
+        /* --- CART & CONSOLE --- */
+        .cart-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #d1fae5; font-size: 0.85rem; }
+        .cart-total { font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-top: 15px; display: flex; justify-content: space-between; }
+        
         .console {
-            background: #111827;
-            color: #10B981;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 250px;
-            overflow-y: auto;
-            font-size: 14px;
+            background: var(--console-bg); color: #10b981; padding: 15px; border-radius: 12px;
+            font-family: 'Courier New', monospace; white-space: pre-wrap; font-size: 12px;
+            max-height: 250px; overflow-y: auto; margin-top: 15px; border: 2px solid var(--accent);
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            background: #EF4444;
-            color: white;
-            float: right;
-            margin-top: 10px;
-        }
+        /* --- FORMS & BUTTONS --- */
+        label { display: block; font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 5px; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; border: 2px solid #ecfdf5; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-family: inherit; font-size: 14px; }
+        input:focus { border-color: var(--primary); outline: none; background: #f0fdf4; }
+        
+        .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn:hover { background: var(--primary-dark); transform: scale(1.02); }
+        .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
 
-        .logged-in {
-            background: #10B981;
-        }
+        /* --- CLOUD URL DISPLAY --- */
+        .url-box { margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 2px solid var(--accent); font-size: 0.85rem; display: none; }
+        .url-box a { color: var(--primary); font-weight: 700; text-decoration: underline; word-break: break-all; }
+        
+        #previewImg { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #d1fae5; display: none; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
-
 <body>
 
+    <div id="notification-container"></div>
+
+    <nav>
+        <a href="#" class="logo">GREEN<span>MART</span></a>
+        <div class="nav-links">
+            <a href="#products">Shop</a>
+            <a href="#checkout">Checkout</a>
+            <a href="#vendor">Vendor</a>
+            <a href="#auth" style="background: var(--primary); color: white; padding: 8px 18px; border-radius: 20px;">Login</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Eco-Tech Storefront</h1>
+        <p>API Driven E-Commerce with Secure JWT & Cloudinary Integration</p>
+    </header>
+
     <div class="container">
-        <h1>🚀 API Testing Dashboard <span id="authStatus" class="status-badge">Not Logged In</span></h1>
+        
+        <div class="main-content">
+            <section id="products" class="section-card">
+                <h2>Product Catalog</h2>
+                <div class="product-grid">
+                    <div class="product-card">
+                        <span class="p-icon">🍃</span>
+                        <div class="p-name">Eco-Pods</div>
+                        <div class="p-price">₹8,499</div>
+                        <button class="btn" onclick="addToCart('Eco-Pods', 8499)">Add to Cart</button>
+                    </div>
+                    <div class="product-card">
+                        <span class="p-icon">🔋</span>
+                        <div class="p-name">Solar Bank</div>
+                        <div class="p-price">₹4,200</div>
+                        <button class="btn" onclick="addToCart('Solar Bank', 4200)">Add to Cart</button>
+                    </div>
+                    <div class="product-card">
+                        <span class="p-icon">⌚</span>
+                        <div class="p-name">Leaf Watch</div>
+                        <div class="p-price">₹11,999</div>
+                        <button class="btn" onclick="addToCart('Leaf Watch', 11999)">Add to Cart</button>
+                    </div>
+                </div>
+            </section>
 
-        <div class="card">
-            <h3 style="margin-top: 0;">Live Server Response</h3>
-            <div id="logOutput" class="console">System Ready... Waiting for actions.</div>
+            <section id="checkout" class="section-card">
+                <h2>Secure Checkout</h2>
+                <label>Cart Total (INR)</label>
+                <input type="number" id="amount" value="0" readonly style="background: #f8fafc; font-weight: 800; color: var(--primary); font-size: 1.2rem;">
+                
+                <label>Test Card Number</label>
+                <input type="text" id="card" value="4242424242424242">
+                
+                <button class="btn" onclick="processPayment()">Complete Secure Transaction</button>
+            </section>
+
+            <section id="vendor" class="section-card">
+                <h2>Vendor Cloud Portal</h2>
+                <label>Upload Product Catalog Media</label>
+                <input type="file" id="imageFile" style="border: none; padding-left: 0;">
+                <button class="btn" style="background: #1e293b;" onclick="uploadImage()">Sync to Cloudinary</button>
+                
+                <div id="urlContainer" class="url-box">
+                    <label>Cloud Storage Link:</label>
+                    <a id="cloudLink" href="#" target="_blank">View File</a>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+            </section>
         </div>
 
-        <div class="card">
-            <h3>1. Authentication (JWT)</h3>
-            <div class="form-group">
-                <label>Name (For Registration Only)</label>
-                <input type="text" id="name" placeholder="Enter Name" value="">
-            </div>
-            <div class="row">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" placeholder="Email" value="">
+        <div class="sidebar">
+            <section id="auth" class="section-card">
+                <h2>Member Portal</h2>
+                <input type="text" id="name" placeholder="Full Name (Registration)">
+                <input type="email" id="email" placeholder="Email Address">
+                <input type="password" id="password" placeholder="Password">
+                <button class="btn" onclick="registerUser()">Register</button>
+                <button class="btn btn-outline" style="margin-top:10px;" onclick="loginUser()">Sign In</button>
+            </section>
+
+            <section class="section-card">
+                <h2>Active Cart</h2>
+                <div id="cartList"><p style="font-size: 0.8rem; color: #666;">No items selected.</p></div>
+                <div class="cart-total">
+                    <span>Subtotal:</span>
+                    <span id="cartSum">₹0</span>
                 </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" placeholder="Password" value="">
-                </div>
-            </div>
-            <div class="row">
-                <button onclick="registerUser()">Register New User</button>
-                <button class="secondary" onclick="loginUser()">Login & Get Token</button>
-            </div>
+            </section>
+
+            <section class="section-card" style="background: #064e3b; color: white;">
+                <h2 style="color: white; border-color: var(--accent); font-size: 1rem;">API Response Debugger</h2>
+                <div id="logOutput" class="console">Ready for requests...</div>
+            </section>
         </div>
 
-        <div class="card">
-            <h3>2. Product Image Upload (Cloudinary)</h3>
-            <p style="font-size: 14px; color: #666;">Requires an active JWT token from logging in.</p>
-            <div class="form-group">
-                <input type="file" id="imageFile" accept="image/*">
-            </div>
-            <button onclick="uploadImage()">Upload to Cloud</button>
-        </div>
-
-        <div class="card">
-            <h3>3. Process Mock Payment</h3>
-            <p style="font-size: 14px; color: #666;">Requires an active JWT token.</p>
-            <div class="row">
-                <div class="form-group">
-                    <label>Amount (INR)</label>
-                    <input type="number" id="amount" placeholder="Amount" value="1500">
-                </div>
-                <div class="form-group">
-                    <label>16-Digit Card Number</label>
-                    <input type="text" id="card" placeholder="1234567812345678" value="1234567812345678">
-                </div>
-            </div>
-            <button onclick="processPayment()">Submit Payment</button>
-        </div>
     </div>
 
     <script>
         let currentToken = null;
+        let cart = [];
+
+        function notify(msg, err = false) {
+            const container = document.getElementById('notification-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${err ? 'error' : ''}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
 
         function logResponse(title, data) {
             const consoleEl = document.getElementById('logOutput');
-            consoleEl.innerHTML = `<strong>[${title}]</strong>\n` + JSON.stringify(data, null, 2);
+            consoleEl.innerHTML = `<strong>[${title}]</strong>\n` + JSON.stringify(data, null, 2) + `\n\n` + consoleEl.innerHTML;
         }
 
-        function updateStatus(token) {
-            if (token) {
-                currentToken = token;
-                document.getElementById('authStatus').innerText = "✅ Logged In Securely";
-                document.getElementById('authStatus').className = "status-badge logged-in";
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            updateCartUI();
+            notify(`${name} added!`);
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cartList');
+            const sumDisplay = document.getElementById('cartSum');
+            const amountInput = document.getElementById('amount');
+            
+            if (cart.length === 0) {
+                list.innerHTML = `<p style="font-size: 0.8rem; color: #666;">No items selected.</p>`;
+                sumDisplay.innerText = "₹0";
+                amountInput.value = 0;
+                return;
             }
+
+            let total = 0;
+            list.innerHTML = cart.map(item => {
+                total += item.price;
+                return `<div class="cart-item"><span>${item.name}</span><span>₹${item.price}</span></div>`;
+            }).join('');
+
+            sumDisplay.innerText = `₹${total.toLocaleString()}`;
+            amountInput.value = total;
         }
 
         async function registerUser() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
             try {
                 const res = await fetch('/api/register', {
                     method: 'POST',
@@ -216,20 +251,15 @@
                     body: JSON.stringify({ name, email, password })
                 });
                 const data = await res.json();
-
-                if (data.success) {
-                    updateStatus(data.token);
-                    logResponse("REGISTER SUCCESS", data);
-                } else {
-                    logResponse("REGISTER FAILED", data);
-                }
-            } catch (err) { logResponse("ERROR", err.message); }
+                logResponse("REGISTER", data);
+                if (data.success) { currentToken = data.token; notify("Welcome, " + name); }
+                else notify(data.message, true);
+            } catch (e) { notify("Server Error", true); }
         }
 
         async function loginUser() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
             try {
                 const res = await fetch('/api/login', {
                     method: 'POST',
@@ -237,26 +267,20 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();
-
-                if (data.success) {
-                    updateStatus(data.token);
-                    logResponse("LOGIN SUCCESS", data);
-                } else {
-                    logResponse("LOGIN FAILED", data);
-                }
-            } catch (err) { logResponse("ERROR", err.message); }
+                logResponse("LOGIN", data);
+                if (data.success) { currentToken = data.token; notify("Login successful!"); }
+                else notify(data.message, true);
+            } catch (e) { notify("Server Error", true); }
         }
 
         async function uploadImage() {
-            if (!currentToken) return alert("Please Login First!");
-
-            const fileInput = document.getElementById('imageFile');
-            if (!fileInput.files[0]) return alert("Please select an image.");
+            if (!currentToken) return notify("Auth required", true);
+            const file = document.getElementById('imageFile').files[0];
+            if (!file) return notify("Select image", true);
 
             const formData = new FormData();
-            formData.append('image', fileInput.files[0]);
-
-            document.getElementById('logOutput').innerText = "Uploading to Cloudinary... Please wait.";
+            formData.append('image', file);
+            notify("Syncing to cloud...");
 
             try {
                 const res = await fetch('/api/upload', {
@@ -265,32 +289,47 @@
                     body: formData
                 });
                 const data = await res.json();
-                logResponse("UPLOAD RESULT", data);
-            } catch (err) { logResponse("ERROR", err.message); }
+                logResponse("UPLOAD", data);
+                
+                if (data.success) {
+                    const finalUrl = data.url || data.imageUrl || data.secure_url || data.image || (data.data && data.data.url);
+                    if (finalUrl) {
+                        notify("Cloud Sync Complete!");
+                        const container = document.getElementById('urlContainer');
+                        const link = document.getElementById('cloudLink');
+                        const img = document.getElementById('previewImg');
+                        
+                        container.style.display = 'block';
+                        link.href = finalUrl;
+                        link.innerText = finalUrl;
+                        img.src = finalUrl;
+                        img.style.display = 'block';
+                    } else notify("URL key missing in response", true);
+                } else notify("Upload failed", true);
+            } catch (e) { notify("Upload error", true); }
         }
 
         async function processPayment() {
-            if (!currentToken) return alert("Please Login First!");
-
+            if (!currentToken) return notify("Login required", true);
             const amount = document.getElementById('amount').value;
-            const cardNumber = document.getElementById('card').value;
+            if (amount <= 0) return notify("Cart empty", true);
 
-            document.getElementById('logOutput').innerText = "Processing transaction... Please wait.";
-
+            notify("Contacting gateway...");
             try {
                 const res = await fetch('/api/payment', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify({ amount, cardNumber })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                    body: JSON.stringify({ amount, cardNumber: document.getElementById('card').value })
                 });
                 const data = await res.json();
-                logResponse("PAYMENT STATUS", data);
-            } catch (err) { logResponse("ERROR", err.message); }
+                logResponse("PAYMENT", data);
+                if (data.success) {
+                    notify("Transaction Success!");
+                    cart = [];
+                    updateCartUI();
+                } else notify(data.message, true);
+            } catch (e) { notify("Gateway error", true); }
         }
     </script>
 </body>
-
 </html>
