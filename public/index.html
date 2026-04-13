@@ -274,40 +274,59 @@
         }
 
         async function uploadImage() {
-            if (!currentToken) return notify("Auth required", true);
-            const file = document.getElementById('imageFile').files[0];
-            if (!file) return notify("Select image", true);
+    if (!currentToken) return notify("Security Alert: Please login first", true);
+    
+    const fileInput = document.getElementById('imageFile');
+    const file = fileInput.files[0];
+    if (!file) return notify("Selection Error: No file selected", true);
 
-            const formData = new FormData();
-            formData.append('image', file);
-            notify("Syncing to cloud...");
+    const formData = new FormData();
+    formData.append('image', file);
+    notify("Syncing to Cloudinary...");
 
-            try {
-                const res = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${currentToken}` },
-                    body: formData
-                });
-                const data = await res.json();
-                logResponse("UPLOAD", data);
+    try {
+        const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            body: formData
+        });
+        
+        const data = await res.json();
+        
+        // --- DEBUGGING LOG ---
+        console.log("Full Server Response:", data);
+
+        if (data.success) {
+            // This looks for every possible key name for a link
+            const finalUrl = data.url || data.imageUrl || data.secure_url || data.image || (data.data && data.data.url);
+            
+            if (finalUrl) {
+                notify("Cloud Sync Successful!");
+                const container = document.getElementById('urlContainer');
+                const link = document.getElementById('cloudLink');
+                const img = document.getElementById('previewImg');
                 
-                if (data.success) {
-                    const finalUrl = data.url || data.imageUrl || data.secure_url || data.image || (data.data && data.data.url);
-                    if (finalUrl) {
-                        notify("Cloud Sync Complete!");
-                        const container = document.getElementById('urlContainer');
-                        const link = document.getElementById('cloudLink');
-                        const img = document.getElementById('previewImg');
-                        
-                        container.style.display = 'block';
-                        link.href = finalUrl;
-                        link.innerText = finalUrl;
-                        img.src = finalUrl;
-                        img.style.display = 'block';
-                    } else notify("URL key missing in response", true);
-                } else notify("Upload failed", true);
-            } catch (e) { notify("Upload error", true); }
+                container.style.display = 'block';
+                link.href = finalUrl;
+                link.innerHTML = `<span>🔗 View Image:</span> ${finalUrl}`;
+                
+                // Show the preview
+                img.src = finalUrl;
+                img.style.display = 'block';
+            } else {
+                // IF UNDEFINED: This alert will tell you what the server actually sent
+                const keys = Object.keys(data).join(", ");
+                alert("Link not found! Server sent these keys: " + keys);
+                notify("Check console (F12) for server response", true);
+            }
+        } else {
+            notify(data.message || "Upload failed", true);
         }
+    } catch (e) { 
+        notify("Server Connection Error", true); 
+        console.error("Fetch Error:", e);
+    }
+}
 
         async function processPayment() {
             if (!currentToken) return notify("Login required", true);
