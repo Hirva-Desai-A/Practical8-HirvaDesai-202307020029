@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce API Dashboard</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+            --text: #1F2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #4B5563;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #4338CA;
+        }
+
+        button.secondary {
+            background-color: #10B981;
+            margin-top: 10px;
+        }
+
+        button.secondary:hover {
+            background-color: #059669;
+        }
+
+        .console {
+            background: #111827;
+            color: #10B981;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #EF4444;
+            color: white;
+            float: right;
+            margin-top: 10px;
+        }
+
+        .logged-in {
+            background: #10B981;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>🚀 API Testing Dashboard <span id="authStatus" class="status-badge">Not Logged In</span></h1>
+
+        <div class="card">
+            <h3 style="margin-top: 0;">Live Server Response</h3>
+            <div id="logOutput" class="console">System Ready... Waiting for actions.</div>
+        </div>
+
+        <div class="card">
+            <h3>1. Authentication (JWT)</h3>
+            <div class="form-group">
+                <label>Name (For Registration Only)</label>
+                <input type="text" id="name" placeholder="John Doe" value="John Doe">
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" placeholder="Email" value="admin@test.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Password" value="password123">
+                </div>
+            </div>
+            <div class="row">
+                <button onclick="registerUser()">Register New User</button>
+                <button class="secondary" onclick="loginUser()">Login & Get Token</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>2. Product Image Upload (Cloudinary)</h3>
+            <p style="font-size: 14px; color: #666;">Requires an active JWT token from logging in.</p>
+            <div class="form-group">
+                <input type="file" id="imageFile" accept="image/*">
+            </div>
+            <button onclick="uploadImage()">Upload to Cloud</button>
+        </div>
+
+        <div class="card">
+            <h3>3. Process Mock Payment</h3>
+            <p style="font-size: 14px; color: #666;">Requires an active JWT token. (80% success rate)</p>
+            <div class="row">
+                <div class="form-group">
+                    <label>Amount (INR)</label>
+                    <input type="number" id="amount" placeholder="Amount" value="1500">
+                </div>
+                <div class="form-group">
+                    <label>16-Digit Card Number</label>
+                    <input type="text" id="card" placeholder="1234567812345678" value="1234567812345678">
+                </div>
+            </div>
+            <button onclick="processPayment()">Submit Payment</button>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = null;
+
+        function logResponse(title, data) {
+            const consoleEl = document.getElementById('logOutput');
+            consoleEl.innerHTML = `<strong>[${title}]</strong>\n` + JSON.stringify(data, null, 2);
+        }
+
+        function updateStatus(token) {
+            if (token) {
+                currentToken = token;
+                document.getElementById('authStatus').innerText = "✅ Logged In Securely";
+                document.getElementById('authStatus').className = "status-badge logged-in";
+            }
+        }
+
+        async function registerUser() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    updateStatus(data.token);
+                    logResponse("REGISTER SUCCESS", data);
+                } else {
+                    logResponse("REGISTER FAILED", data);
+                }
+            } catch (err) { logResponse("ERROR", err.message); }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    updateStatus(data.token);
+                    logResponse("LOGIN SUCCESS", data);
+                } else {
+                    logResponse("LOGIN FAILED", data);
+                }
+            } catch (err) { logResponse("ERROR", err.message); }
+        }
+
+        async function uploadImage() {
+            if (!currentToken) return alert("Please Login First!");
+
+            const fileInput = document.getElementById('imageFile');
+            if (!fileInput.files[0]) return alert("Please select an image.");
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            document.getElementById('logOutput').innerText = "Uploading to Cloudinary... Please wait.";
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` },
+                    body: formData
+                });
+                const data = await res.json();
+                logResponse("UPLOAD RESULT", data);
+            } catch (err) { logResponse("ERROR", err.message); }
+        }
+
+        async function processPayment() {
+            if (!currentToken) return alert("Please Login First!");
+
+            const amount = document.getElementById('amount').value;
+            const cardNumber = document.getElementById('card').value;
+
+            document.getElementById('logOutput').innerText = "Processing transaction... Please wait.";
+
+            try {
+                const res = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify({ amount, cardNumber })
+                });
+                const data = await res.json();
+                logResponse("PAYMENT STATUS", data);
+            } catch (err) { logResponse("ERROR", err.message); }
+        }
+    </script>
+</body>
+
+</html>
